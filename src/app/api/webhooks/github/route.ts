@@ -21,26 +21,5 @@ export async function POST(req: Request) {
     }
   }
 
-  if (name === 'installation' || name === 'installation_repositories') {
-    const payload = JSON.parse(body)
-    if (payload.action === 'created' || payload.action === 'added') {
-      for (const repo of payload.repositories) {
-        await prisma.repo.upsert({
-          where: { githubRepoId: repo.id },
-          update: { installationId: payload.installation.id, installedAt: new Date() },
-          create: {
-            workspaceId: '',
-            githubRepoId: repo.id,
-            owner: repo.full_name.split('/')[0],
-            name: repo.name,
-            fullName: repo.full_name,
-            defaultBranch: repo.default_branch || 'main',
-            installationId: payload.installation.id,
-          },
-        })
-      }
-    }
-  }
-
   return Response.json({ ok: true })
 }
