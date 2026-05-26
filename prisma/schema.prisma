@@ -83,7 +83,7 @@ model WorkspaceMember {
 model Repo {
   id              String         @id @default(cuid())
   workspaceId     String
-  githubRepoId    Int
+  githubRepoId    Int            @unique
   owner           String
   name            String
   fullName        String
