@@ -29,4 +29,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/auth/login',
   },
+  events: {
+    async createUser({ user }) {
+      const workspace = await prisma.workspace.create({
+        data: {
+          name: `${user.name || user.email}'s Workspace`,
+          slug: `${(user.name || user.email || 'user').toLowerCase().replace(/[^a-z0-9]/g, '-')}-workspace`,
+        },
+      })
+      await prisma.workspaceMember.create({
+        data: { workspaceId: workspace.id, userId: user.id!, role: 'owner' },
+      })
+    },
+  },
 })

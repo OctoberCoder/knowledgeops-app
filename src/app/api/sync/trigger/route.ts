@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { processSyncJob } from '@/lib/sync-worker'
+import { checkEntitlement } from '@/lib/entitlements'
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -13,6 +14,10 @@ export async function POST(req: Request) {
   })
   if (!repo) return Response.json({ error: 'repo not found' }, { status: 404 })
   if (repo.workspace.members.length === 0) return Response.json({ error: 'access denied' }, { status: 403 })
+
+  if (!await checkEntitlement(repo.workspaceId, 'syncs')) {
+    return Response.json({ error: 'sync limit reached for this billing period' }, { status: 403 })
+  }
 
   const job = await prisma.syncJob.create({
     data: { repoId, status: 'queued', trigger: 'manual' },
